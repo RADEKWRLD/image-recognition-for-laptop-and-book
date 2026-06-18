@@ -9,17 +9,16 @@
 
 ## 步骤 0｜环境准备
 
-需要 Python 3.9+。安装依赖：
+需要 Python 3.13。安装依赖（版本已在 `requirements.txt` 中定死）：
 
 ```bash
-pip install torch torchvision python-dotenv matplotlib pillow numpy
+pip install -r requirements.txt
 ```
 
 设备说明：
 - **Apple Silicon（M 系列）** 自动使用 MPS，无需改代码。
 - 有 NVIDIA 显卡自动用 CUDA；否则回退 CPU。优先级 **MPS > CUDA > CPU**。
 
-> 项目暂无 `requirements.txt`。如需一键安装，可让我生成后改用 `pip install -r requirements.txt`。
 
 ---
 
@@ -133,7 +132,7 @@ python format_check.py test_images/output labels.csv
 
 ```bash
 # 1. 装依赖
-pip install torch torchvision python-dotenv matplotlib pillow numpy
+pip install -r requirements.txt
 # 2. 放数据到 data/{book_close,book_open,laptop_close,laptop_open}/
 # 3. 训练（产出 runs/best_model.pth）
 python train.py
