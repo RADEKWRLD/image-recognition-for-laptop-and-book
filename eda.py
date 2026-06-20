@@ -23,6 +23,12 @@ import matplotlib
 matplotlib.use("Agg")            # 无界面后端, 直接存图(同 utils.plot_curves)
 import matplotlib.pyplot as plt
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(it, **kw):
+        return it
+
 from src import settings
 from src.utils import set_seed
 from src.dataset import scan_pairs
@@ -33,7 +39,7 @@ SAMPLES_PER_CLASS = 6            # 样本网格每类抽几张
 def collect_stats(samples):
     """逐张读原图, 收集尺寸/颜色统计。返回 per-sample 列表。"""
     rows = []
-    for img_path, label_idx in samples:
+    for img_path, label_idx in tqdm(samples, desc="EDA 统计", leave=False):
         cls = settings.CLASS_NAMES[label_idx]
         try:
             with Image.open(img_path) as im:

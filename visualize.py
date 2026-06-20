@@ -27,6 +27,12 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(it, **kw):
+        return it
+
 from src import settings
 from src.utils import get_device
 from src.model import load_model
@@ -55,7 +61,7 @@ def predict(model, device, samples):
     """逐张推理, 返回 (y_true, y_pred, confs, paths)。"""
     tf = get_transforms(train=False)
     y_true, y_pred, confs, paths = [], [], [], []
-    for img_path, true_idx in samples:
+    for img_path, true_idx in tqdm(samples, desc="推理", leave=False):
         img = Image.open(img_path).convert("RGB")
         x = tf(img).unsqueeze(0).to(device)
         prob = torch.softmax(model(x), dim=1)[0]

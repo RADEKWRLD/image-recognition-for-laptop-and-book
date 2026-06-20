@@ -15,9 +15,13 @@
 pip install -r requirements.txt
 ```
 
+依赖含：`torch torchvision python-dotenv matplotlib pillow numpy tqdm`（`tqdm` 用于训练进度条）。
+
 设备说明：
 - **Apple Silicon（M 系列）** 自动使用 MPS，无需改代码。
 - 有 NVIDIA 显卡自动用 CUDA；否则回退 CPU。优先级 **MPS > CUDA > CPU**。
+
+> **Windows + N 卡**：PyPI 默认的 `torch` 是 CPU 版（`pip install -r requirements.txt` 装的也是）。要用 GPU，先 `pip uninstall -y torch torchvision`，再按驱动支持的 CUDA 版本装，如 `pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126`。验证：`python -c "import torch; print(torch.cuda.is_available())"` 输出 `True`。
 
 
 ---
@@ -56,6 +60,7 @@ data/
 |---|---|---|
 | `IMG_SIZE` | 96 | ↑ 保留更多细节，但计算量增大 |
 | `BATCH_SIZE` | 16 | ↑ 收敛更快，占用显存更多 |
+| `NUM_WORKERS` | 4 | DataLoader 读盘并行度，数据多时提速；CPU 核少或报多进程错时调小/设 0 |
 | `EPOCHS` | 40 | ↑ 收敛更充分，但过拟合风险增大 |
 | `LR` | 5e-4 | ↑ 收敛快但不稳；↓ 稳但慢 |
 | `VAL_RATIO` | 0.2 | 验证集比例 |

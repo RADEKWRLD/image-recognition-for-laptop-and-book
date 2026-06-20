@@ -127,8 +127,13 @@ def build_dataloaders():
     train_set = ImageLabelDataset(train_samples, get_transforms(train=True))
     val_set = ImageLabelDataset(val_samples, get_transforms(train=False))
 
-    train_loader = DataLoader(train_set, batch_size=settings.BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(val_set, batch_size=settings.BATCH_SIZE, shuffle=False)
+    # 并行读盘提速: num_workers 多进程, pin_memory 加速到 GPU 的拷贝
+    nw = settings.NUM_WORKERS
+    pin = torch.cuda.is_available()
+    common = dict(batch_size=settings.BATCH_SIZE, num_workers=nw,
+                  pin_memory=pin, persistent_workers=(nw > 0))
+    train_loader = DataLoader(train_set, shuffle=True, **common)
+    val_loader = DataLoader(val_set, shuffle=False, **common)
 
     # 各类别样本数统计
     label_counts = {c: 0 for c in settings.CLASS_NAMES}

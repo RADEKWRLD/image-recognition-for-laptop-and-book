@@ -6,3 +6,4 @@ python-dotenv==1.2.2
 matplotlib==3.11.0
 pillow==12.2.0
 numpy==2.4.6
+tqdm==4.67.1

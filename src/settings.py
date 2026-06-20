@@ -36,6 +36,7 @@ LABELS_DIR = os.path.join(DATA_DIR, _get("LABELS_SUBDIR", "labels", str))
 # ============ 训练超参 ============
 IMG_SIZE   = _get("IMG_SIZE", 96, int)
 BATCH_SIZE = _get("BATCH_SIZE", 16, int)
+NUM_WORKERS = _get("NUM_WORKERS", 4, int)   # DataLoader 读盘并行度(CPU 核少可调小/设 0)
 EPOCHS     = _get("EPOCHS", 40, int)
 LR         = _get("LR", 5e-4, float)
 VAL_RATIO  = _get("VAL_RATIO", 0.2, float)
