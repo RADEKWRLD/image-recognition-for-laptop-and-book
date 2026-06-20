@@ -72,9 +72,9 @@ Hassani et al., *"Escaping the Big Data Paradigm with Compact Transformers"* (20
 
 | 项 | 内容 |
 |---|---|
-| **输入** | `data/` 下 4 个类别子目录 |
-| **算法/技术** | `torchvision.ImageFolder` 读取；`get_transforms(train)`：<br>· **训练**：Resize(96) + **数据增强**（RandomHorizontalFlip、RandomRotation(15°)、ColorJitter(亮度/对比度/饱和度 0.2)）+ ToTensor + Normalize<br>· **验证/测试**：仅 Resize(96) + ToTensor + Normalize（**无增强**，保证 train/test 预处理一致）<br>按 `VAL_RATIO=0.2` 做 80/20 划分，train/val 各绑定对应 transform |
-| **输出** | `train_loader`、`val_loader`、info 字典 |
+| **输入** | `data/images/*.jpg` + `data/labels/*.txt`（同名配对，txt 内容为类别字符串） |
+| **算法/技术** | 自定义 `ImageLabelDataset`：`scan_pairs()` 按 stem 配对 images↔labels，读标签字符串 → `normalize_label()` → `CLASS_NAMES.index()` 得标签 idx；配对异常（缺图/缺标签/标签非法/损坏图）收进 `skipped` 跳过而非崩溃。<br>`get_transforms(train)`：<br>· **训练**：Resize(96) + **数据增强**（RandomHorizontalFlip、RandomRotation(15°)、ColorJitter(亮度/对比度/饱和度 0.2)）+ ToTensor + Normalize<br>· **验证/测试**：仅 Resize(96) + ToTensor + Normalize（**无增强**，保证 train/test 预处理一致）<br>按 `VAL_RATIO=0.2` 用固定 seed 的 `random_split` 做 80/20 划分，train/val 各构造带对应 transform 的 `ImageLabelDataset` |
+| **输出** | `train_loader`、`val_loader`、info 字典（`total/n_train/n_val/label_counts/skipped/val_samples`） |
 | **职责** | 数据批处理与标签映射；数据增强缓解小数据过拟合 |
 
 ---
@@ -138,6 +138,8 @@ Hassani et al., *"Escaping the Big Data Paradigm with Compact Transformers"* (20
 | [`train.py`](../train.py) | 组装全流程：set_seed → build_dataloaders → build_model → Trainer.fit → save_checkpoint + plot_curves + save_history_csv |
 | [`test.py`](../test.py) | 仅加载权重做推理：load_model → 逐图 Resize/Normalize → `argmax` → 输出同名 `.txt`。要求启动后 **1 分钟内**完成全部推理 |
 | [`format_check.py`](../format_check.py) | 校验输出 txt 文件名/内容是否为合法标签；可对照 `labels.csv` 计算准确率 |
+| [`eda.py`](../eda.py) | 数据 EDA：类别分布 / 尺寸 / 颜色 / 样本网格 / 配对异常清单 → `runs/eda/` |
+| [`visualize.py`](../visualize.py) | 预测可视化：混淆矩阵 / 每类准确率 / 预测网格 / 错分画廊 / 置信度分布 → `runs/viz/` |
 
 ---
 
@@ -147,7 +149,7 @@ Hassani et al., *"Escaping the Big Data Paradigm with Compact Transformers"* (20
 |---|---|---|---|---|
 | L0 | `settings.py` | `.env` + 常量 | dotenv 加载 + 类型转换 | 配置变量 |
 | L1 | `utils.py` | 配置 | 设备选择 / 种子 / 画图 | 工具函数 |
-| L2 | `dataset.py` | `data/` | ImageFolder + 数据增强 + 80/20 划分 | DataLoader×2 |
+| L2 | `dataset.py` | `data/images`+`data/labels` | 同名配对 + 数据增强 + 80/20 划分 | DataLoader×2 |
 | L2 | `model.py` | 配置 | ConvTokenizer + Transformer + SeqPool | CCT 网络 |
 | L3 | `trainer.py` | DataLoader + 模型 | CrossEntropy(LS) + AdamW + 余弦退火 | best 权重 + history |
 | 入口 | `train.py` / `test.py` | L0–L3 | 流程组装 / 推理 | 权重产物 / `.txt` 预测 |

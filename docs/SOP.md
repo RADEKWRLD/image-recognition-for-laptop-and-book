@@ -24,20 +24,27 @@ pip install -r requirements.txt
 
 ## 步骤 1｜准备数据
 
-在根目录 `data/` 下放 **4 个类别子目录**，每个目录放该类别图片：
+数据采用 **images / labels 同名配对** 布局：图片放 `data/images/`，每张图在 `data/labels/` 下有一个同名 `.txt`，内容是该图的类别字符串。
 
 ```
 data/
-├── book_close/      # 合着的书
-├── book_open/       # 打开的书
-├── laptop_close/    # 合着的笔记本
-└── laptop_open/     # 打开的笔记本
+├── images/
+│   ├── 0001.jpg
+│   ├── 0002.jpg
+│   └── ...
+└── labels/
+    ├── 0001.txt      # 内容: book_close
+    ├── 0002.txt      # 内容: laptop_open
+    └── ...
 ```
 
 说明：
-- 文件夹名会经 `normalize_label()` 自动归一化（去空格、小写、下划线化），如 `Laptop Open` → `laptop_open`。
+- **配对规则**：按文件名主干（stem）配对，`images/0001.jpg` ↔ `labels/0001.txt`。
+- **标签内容**：必须是 `book_close / book_open / laptop_close / laptop_open` 之一（会经 `normalize_label()` 归一化，大小写/空格容错）。
 - 图片格式支持 `.jpg/.jpeg/.png/.bmp/.webp`。
 - 训练时按 `VAL_RATIO=0.2` 自动 80/20 划分训练/验证集。
+- 配对异常（有图无标签、有标签无图、标签非法、损坏图）会被**自动跳过并打印清单**，可先跑 `python eda.py` 体检数据（见末尾「可选分析工具」）。
+- 子目录名可在 `.env` 用 `IMAGES_SUBDIR` / `LABELS_SUBDIR` 覆盖。
 
 ---
 
@@ -116,6 +123,27 @@ python format_check.py test_images/output labels.csv
 
 ---
 
+## 步骤 6｜（可选）分析工具
+
+写报告 / 排查模型问题时用，产物存 `runs/eda/` 和 `runs/viz/`。
+
+**数据 EDA（训练前体检数据）**
+
+```bash
+python eda.py
+```
+读 `data/images` + `data/labels`，输出：类别分布、图像尺寸/长宽比、各类颜色与亮度、每类样本网格、`eda_summary.csv`（含配对异常清单）。
+
+**预测结果可视化（训练后看模型错在哪）**
+
+```bash
+python visualize.py                       # 模式A: 用验证集(自带真值)
+python visualize.py <图片文件夹> <labels文件夹>   # 模式B: 外部 images+labels
+```
+需先有 `runs/best_model.pth`。输出：混淆矩阵、每类准确率、预测样本网格（正确绿/错误红）、错分画廊、置信度分布，并在终端打印整体/每类准确率。
+
+---
+
 ## 附｜常见问题（FAQ）
 
 | 现象 | 原因 / 处理 |
@@ -133,9 +161,11 @@ python format_check.py test_images/output labels.csv
 ```bash
 # 1. 装依赖
 pip install -r requirements.txt
-# 2. 放数据到 data/{book_close,book_open,laptop_close,laptop_open}/
+# 2. 放数据: data/images/0001.jpg + data/labels/0001.txt(内容为类别字符串)
+python eda.py                                        # (可选)数据体检
 # 3. 训练（产出 runs/best_model.pth）
 python train.py
+python visualize.py                                  # (可选)看混淆矩阵/错分
 # 4. 推理（产出每图同名 .txt）
 python test.py test_images test_images/output
 # 5. 校验
