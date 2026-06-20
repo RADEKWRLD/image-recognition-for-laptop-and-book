@@ -28,6 +28,11 @@ def _get(key, default, cast):
 DATA_DIR = os.path.join(_ROOT, _get("DATA_DIR", "data", str))
 OUT_DIR  = os.path.join(_ROOT, _get("OUT_DIR", "runs", str))
 
+# 数据采用 images/labels 同名配对布局: data/images/0001.jpg <-> data/labels/0001.txt
+# (txt 内容为类别字符串)。子目录名可被 .env 覆盖。
+IMAGES_DIR = os.path.join(DATA_DIR, _get("IMAGES_SUBDIR", "images", str))
+LABELS_DIR = os.path.join(DATA_DIR, _get("LABELS_SUBDIR", "labels", str))
+
 # ============ 训练超参 ============
 IMG_SIZE   = _get("IMG_SIZE", 96, int)
 BATCH_SIZE = _get("BATCH_SIZE", 16, int)

@@ -27,7 +27,9 @@ def main():
 
     # 1. 数据
     train_loader, val_loader, info = build_dataloaders()
-    print(f"[info] 文件夹->标签: {info['folder_to_label']}")
+    print(f"[info] 各类别样本数: {info['label_counts']}")
+    if info["skipped"]:
+        print(f"[info] 跳过异常项 {len(info['skipped'])} 个")
     print(f"[info] 样本总数={info['total']} 训练={info['n_train']} 验证={info['n_val']}")
 
     # 2. 模型(精简版 CCT)
